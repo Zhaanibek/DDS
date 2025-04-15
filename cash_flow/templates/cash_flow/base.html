@@ -86,69 +86,77 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Общие JavaScript-функции
-        function loadCategories() {
-            const typeSelect = document.getElementById('id_type');
-            const categorySelect = document.getElementById('id_category');
-            const subcategorySelect = document.getElementById('id_subcategory');
+  function loadCategories() {
+    console.log('>>> loadCategories called');
+    const typeSelect = document.getElementById('id_type');
+    const categorySelect = document.getElementById('id_category');
+    const subcategorySelect = document.getElementById('id_subcategory');
+    if (!typeSelect || !categorySelect || !subcategorySelect) {
+      console.error('Selects not found', typeSelect, categorySelect, subcategorySelect);
+      return;
+    }
 
-            if (!typeSelect || !categorySelect || !subcategorySelect) {
-                return; // Один из элементов не найден — выходим
+    // **Здесь нужно объявить typeId**
+    const typeId = typeSelect.value;
+    console.log('typeId =', typeId);
 
+    // Сброс списков
+    categorySelect.innerHTML = '<option value="">---------</option>';
+    subcategorySelect.innerHTML = '<option value="">---------</option>';
+    if (!typeId) return;
 
-                // Очистка выпадающего списка
-                categorySelect.innerHTML = '<option value="">Выберите категорию</option>';
-                subcategorySelect.innerHTML = '<option value="">Выберите подкатегорию</option>';
-
-                if (typeId) {
-                    fetch(`/api/categories-by-type/?type_id=${typeId}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            data.forEach(category => {
-                                const option = document.createElement('option');
-                                option.value = category.id;
-                                option.textContent = category.name;
-                                categorySelect.appendChild(option);
-                            });
-                        });
-                }
-            }
-        }
-
-        function loadSubcategories() {
-        const categorySelect = document.getElementById('id_category');
-        const subcategorySelect = document.getElementById('id_subcategory');
-
-        if (categorySelect && subcategorySelect) {
-            const categoryId = categorySelect.value;
-
-            // Очистить выпадающий список подкатегорий
-            subcategorySelect.innerHTML = '<option value="">Выберите подкатегорию</option>';
-
-            if (categoryId) {
-                fetch(`/api/subcategories-by-category/?category_id=${categoryId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        data.forEach(subcategory => {
-                            const option = document.createElement('option');
-                            option.value = subcategory.id;
-                            option.textContent = subcategory.name;
-                            subcategorySelect.appendChild(option);
-                        });
-                    });
-                }
-            }
-        }
-
-            // Инициализация динамических полей при загрузке страницы
-            document.addEventListener('DOMContentLoaded', function() {
-            // Если находимся на странице редактирования, загружаем зависимые списки
-            if (document.getElementById('id_type') && document.getElementById('id_category')) {
-                loadCategories();
-                setTimeout(loadSubcategories, 500); // Небольшая задержка для загрузки категорий
-            }
+    fetch(`/api/categories-by-type/?type_id=${typeId}`)
+      .then(r => r.json())
+      .then(data => {
+        console.log('Fetched categories:', data);
+        data.forEach(cat => {
+          const opt = document.createElement('option');
+          opt.value = cat.id;
+          opt.textContent = cat.name;
+          categorySelect.append(opt);
         });
-    </script>
+        console.log('categorySelect.innerHTML now:', categorySelect.innerHTML);
+      })
+      .catch(err => console.error('Error loading categories:', err));
+  }
+
+  function loadSubcategories() {
+    console.log('>>> loadSubcategories called');
+    const categorySelect = document.getElementById('id_category');
+    const subcategorySelect = document.getElementById('id_subcategory');
+    if (!categorySelect || !subcategorySelect) {
+      console.error('Selects not found', categorySelect, subcategorySelect);
+      return;
+    }
+
+    const categoryId = categorySelect.value;
+    console.log('categoryId =', categoryId);
+
+    subcategorySelect.innerHTML = '<option value="">---------</option>';
+    if (!categoryId) return;
+
+    fetch(`/api/subcategories-by-category/?category_id=${categoryId}`)
+      .then(r => r.json())
+      .then(data => {
+        console.log('Fetched subcategories:', data);
+        data.forEach(sub => {
+          const opt = document.createElement('option');
+          opt.value = sub.id;
+          opt.textContent = sub.name;
+          subcategorySelect.append(opt);
+        });
+        console.log('subcategorySelect.innerHTML now:', subcategorySelect.innerHTML);
+      })
+      .catch(err => console.error('Error loading subcategories:', err));
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM ready, initial type:', document.getElementById('id_type')?.value);
+    const typeSelect = document.getElementById('id_type');
+    const categorySelect = document.getElementById('id_category');
+  });
+</script>
+
 
 {% block extra_js %}{% endblock %}
 </body>

@@ -74,14 +74,17 @@ class CashFlowForm(forms.ModelForm):
         if not self.initial.get('created_date'):
             self.initial['created_date'] = timezone.now().date()
 
-        type_id = self.data.get('type') or (self.instance.type.id if self.instance.pk else None)
-        category_id = self.data.get('category') or (self.instance.category.id if self.instance.pk else None)
+        # Получаем выбранные в запросе или у instance значения
+        type_id = self.data.get('type') or (self.instance.type_id if self.instance.pk else None)
+        category_id = self.data.get('category') or (self.instance.category_id if self.instance.pk else None)
 
+        # Если тип выбран — фильтруем категории, иначе queryset пуст
         if type_id:
             self.fields['category'].queryset = Category.objects.filter(type_id=type_id)
         else:
             self.fields['category'].queryset = Category.objects.none()
 
+        # Если категория выбрана — фильтруем подкатегории, иначе queryset пуст
         if category_id:
             self.fields['subcategory'].queryset = Subcategory.objects.filter(category_id=category_id)
         else:
